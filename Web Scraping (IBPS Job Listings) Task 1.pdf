@@ -1,0 +1,46 @@
+Pinak Venture – Demo Task Instructions
+Task 1 – Web Scraping (IBPS Job Listings)
+Goal: Write a Python script to scrape public IBPS job listings from the official website and extract the following fields:
+• Job Title
+• Location
+• Post/Publish Date
+• Link to detailed job page
+
+The results must be saved into a CSV file using Pandas.
+Steps to Follow:
+1. Create a project folder and install dependencies:
+•	mkdir ibps_scraper
+cd ibps_scraper
+python -m venv venv
+source venv/bin/activate  (or venv\Scripts\activate on Windows)
+pip install requests beautifulsoup4 pandas
+2. Visit the IBPS official site: https://www.ibps.in/
+Explore the 'Recruitment Process' or 'Career' section for job listings.
+3. Create the script file scrape_ibps_jobs.py with the following code:
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+URL = "https://www.ibps.in/recruitment-process/"
+response = requests.get(URL)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+jobs = []
+
+for link in soup.select('a'):
+    title = link.get_text(strip=True)
+    href = link.get('href')
+
+    if "recruitment" in title.lower() or "notification" in title.lower():
+        jobs.append({
+            "Job Title": title,
+            "Location": "India",
+            "Post/Publish Date": "N/A",
+            "Link": href if href.startswith("http") else f"https://www.ibps.in/{href}"
+        })
+
+df = pd.DataFrame(jobs)
+df.to_csv("ibps_jobs.csv", index=False)
+print("✅ Scraping completed. File saved as ibps_jobs.csv")
+4. Run the script: python scrape_ibps_jobs.py
+Check that the CSV file is created and contains job listings.

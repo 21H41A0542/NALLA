@@ -1,0 +1,89 @@
+Task 2 – Django REST API (Login Endpoint)
+Goal: Create a Django project with Django REST Framework implementing an API endpoint:
+POST → /api/login/
+
+This endpoint should accept username and password, authenticate the user, and return a JWT token.
+Steps to Follow:
+1. Create a new Django project and install dependencies:
+•	mkdir django_api
+cd django_api
+python -m venv venv
+source venv/bin/activate
+pip install django djangorestframework djangorestframework-simplejwt
+2. Create Django project and app:
+•	django-admin startproject demo_api .
+python manage.py startapp accounts
+3. Add the following in settings.py:
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'accounts',
+]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
+}
+4. In accounts/views.py:
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+
+@api_view(['POST'])
+def login_view(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "refresh": str(refresh),
+            "access": str(refresh.access_token)
+        })
+    else:
+        return Response({"error": "Invalid credentials"}, status=401)
+5. Configure URLs:
+accounts/urls.py:
+from django.urls import path
+from .views import login_view
+
+urlpatterns = [
+    path('login/', login_view, name='login'),
+]
+
+demo_api/urls.py:
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('accounts.urls')),
+]
+6. Create a superuser and run the server:
+•	python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+7. Test API using Postman:
+POST http://127.0.0.1:8000/api/login/
+
+Body (JSON):
+{
+    "username": "admin",
+    "password": "yourpassword"
+}
+
+Response:
+{
+    "refresh": "eyJ0eXAiOiJKV1QiLCJh...",
+    "access": "eyJ0eXAiOiJKV1QiLCJh..."
+}
